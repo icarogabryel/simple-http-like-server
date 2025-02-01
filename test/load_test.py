@@ -1,11 +1,13 @@
-# send a message to the server
+# Load test: send a large message to the server to see if the buffer is working correctly
 
 from socket import socket, AF_INET, SOCK_STREAM
+
 
 HOST_IP = 'localhost'
 HOST_PORT = 12000
 
 END_MARK = '\0'
+
 
 def send_message(message):
     client = socket(AF_INET, SOCK_STREAM)
@@ -16,9 +18,8 @@ def send_message(message):
     response = client.recv(1024)
     print(f'response: {response.decode('utf-8')}')
 
-    # client.close()
 
 if __name__ == '__main__':
     while True:
-        input('Enter to do the test')
+        input('Press enter to do the test.')
         send_message(('a' * 10000) + END_MARK)
