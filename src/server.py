@@ -1,20 +1,48 @@
 from socket import socket, AF_INET, SOCK_STREAM
+from json import loads, dumps
 
 
 HOST_IP = 'localhost'
 HOST_PORT = 12000
-
 END_MARK = '\0'
 
 
-def request_handler(request):
-    return '200'
+data_list = []
 
-def run():
-    server = socket(AF_INET, SOCK_STREAM)
-    server.bind((HOST_IP, HOST_PORT))
 
-    server.listen(1)
+def handle(request: str) -> dict:
+    try:
+        request: dict = loads(request)
+
+    except ValueError:
+        return  {'code': 422, 'message': 'Unprocessable Entity', 'data': None}
+
+    method = request.get('method')
+    path = request.get('path')
+    data = request.get('data')
+
+    if method == 'GET':
+        if path == '/':
+            return {'code': 200, 'message': 'OK', 'data': 'Hello, World!'}
+
+        if path == '/echo':
+            return {'code': 200, 'message': 'OK', 'data': data}
+
+        if path == '/list':
+            return {'code': 200, 'message': 'OK', 'data': data_list}
+
+        else:
+            return {'code': 400, 'message': 'Bad Request', 'data': None}
+
+    else:
+        return {'code': 400, 'message': 'Bad Request', 'data': None}
+
+
+def run_server():
+    server = socket(AF_INET, SOCK_STREAM)  # Create a socket object
+    server.bind((HOST_IP, HOST_PORT))  # Make the socket listen to the specified port
+
+    server.listen(1)  # Enable the server to accept connections
     print(f'Server is listening on {HOST_IP}:{HOST_PORT}')
 
     while True:
@@ -28,10 +56,10 @@ def run():
             has_closed_request = buffer[-1] == END_MARK  # Check if the buffer contains a closed request
 
             if has_closed_request:
-                request = buffer
+                request = buffer[:-1]  # Extract the request from the buffer
                 print(f'Request from {addr}: {request}')
 
-                response = request_handler(request)  # Handle the request
+                response = dumps(handle(request))  # Handle the request
 
                 # Send the received data back to the client
                 conn.sendall(response.encode('utf-8'))

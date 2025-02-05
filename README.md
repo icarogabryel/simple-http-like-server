@@ -4,9 +4,17 @@ In this repo, You will find a simple HTTP-like server written in Python. The ser
 
 ## How It Works
 
-This server uses a TCP socket and listens for incoming connections. When a connection is received, the server reads the incoming data and put it into a buffer. Every received data is added to this buffer until the end marker `\0` is found.
+1. Server Reception:
 
-After the end marker is found, the server handles the request, sends a response back to the client and closes the connection.
+    This server uses a TCP socket and listens for incoming connections. When a connection is received, the server reads the incoming data and put it into a buffer. Every received data is added to this buffer until the end marker `\0` is found. After the end marker is found, the server processes the request. Because the server is stateless, it closes the connection after sending the response.
+
+2. Request Handling:
+
+    The requests uses JSON format. The request is a JSON object with the following fields:
+
+    - `method`: The HTTP method used in the request.
+    - `path`: The path of the requested resource.
+    - `data`: The data sent in the request body.
 
 ## How to Run
 
