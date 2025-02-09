@@ -10,6 +10,13 @@ END_MARK = '\0'
 data_list = []
 
 
+def dict_to_json(func) -> str:
+    def wrapper(*args, **kwargs) -> str:
+        return dumps(func(*args, **kwargs))
+    
+    return wrapper
+
+@dict_to_json
 def handle(request: str) -> dict:
     try:
         request: dict = loads(request)
@@ -33,10 +40,45 @@ def handle(request: str) -> dict:
 
         else:
             return {'code': 400, 'message': 'Bad Request', 'data': None}
+        
+    elif method == 'POST':
+        if path == '/item':
+            data_list.append(data)
+
+            return {'code': 201, 'message': 'Created', 'data': None}
+
+        else:
+            return {'code': 400, 'message': 'Bad Request', 'data': None}
+        
+    elif method == 'PUT':
+        if path == '/item':
+            try:
+                current, new = data.split(',')
+                index = data_list.index(current)
+                data_list[index] = new
+
+            except ValueError:
+                return {'code': 404, 'message': 'Not Found', 'data': None}
+
+            return {'code': 200, 'message': 'OK', 'data': None}
+
+        else:
+            return {'code': 400, 'message': 'Bad Request', 'data': None}
+        
+    elif method == 'DELETE':
+        if path == '/item':
+            try:
+                data_list.remove(data)
+            except ValueError:
+                return {'code': 404, 'message': 'Not Found', 'data': None}
+
+            return {'code': 204, 'message': 'No Content', 'data': None}  # Processed successfully, but no content to return
+
+        else:
+            return {'code': 400, 'message': 'Bad Request', 'data': None}
 
     else:
         return {'code': 400, 'message': 'Bad Request', 'data': None}
-
 
 def run_server():
     server = socket(AF_INET, SOCK_STREAM)  # Create a socket object
@@ -59,7 +101,7 @@ def run_server():
                 request = buffer[:-1]  # Extract the request from the buffer
                 print(f'Request from {addr}: {request}')
 
-                response = dumps(handle(request))  # Handle the request
+                response = handle(request)  # Handle the request
 
                 # Send the received data back to the client
                 conn.sendall(response.encode('utf-8'))
